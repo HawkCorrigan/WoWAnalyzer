@@ -45,7 +45,7 @@ class PrimalFireElemental extends Analyzer {
     this.maelstromGained+=event.amount;
   }
 
-  on_cast(event) {
+  on_damage(event) {
     switch(event.ability.guid) {
       case SPELLS.FIRE_ELEMENTAL.id:
         this.PFEcasts++;

@@ -6,6 +6,7 @@ import SpellLink from 'common/SpellLink';
 import { change, date } from 'common/changelog';
 
 export default [
+  change(date(2019, 7, 28), <>Fixed a bug not registering <SpellLink id={SPELLS.METEOR.id} />, because of a change in Blizzards Combat Log</>, [HawkCorrigan]),
   change(date(2019, 5, 6), <>Added support for the damage part of <SpellLink id={SPELLS.IGNEOUS_POTENTIAL.id} />.</>, [niseko]),
   change(date(2019, 3, 20), <>Fixing <SpellLink id={SPELLS.MASTER_OF_THE_ELEMENTS_TALENT.id} />-Tracker and Damage Calculation.</>, [HawkCorrigan]),
   change(date(2018, 11, 13), <>Added a basic Checklist, with the cross-spec functionalities.</>, [HawkCorrigan]),
