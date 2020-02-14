@@ -11,9 +11,7 @@ import StatisticBox from 'interface/others/StatisticBox';
 
 import Abilities from '../Abilities';
 import Events, { CastEvent, RemoveBuffEvent } from '../../../../core/Events';
-import Combatant from '../../../../core/Combatant';
-
-type bla = (combatant: Combatant)=> number;
+import Combatant from 'parser/core/Combatant';
 
 class StormElemental extends Analyzer {
 
@@ -154,7 +152,6 @@ class StormElemental extends Analyzer {
       this.correctCasts++;
     } else {
       this.wrongCasts++;
-      console.log(event.ability.guid);
     }
 
   }
@@ -163,7 +160,7 @@ class StormElemental extends Analyzer {
     return (
       <StatisticBox
         icon={<SpellIcon id={SPELLS.STORM_ELEMENTAL_TALENT.id} />}
-        value={`${formatPercentage(this.correctCasts/(this.correctCasts+this.wrongCasts))}`}
+        value={`${formatPercentage(this.correctCasts/(this.correctCasts+this.wrongCasts))} %`}
         label="Percentag of Correct Casts during hard cast Storm Elemental"
         tooltip={(
           <>
@@ -184,8 +181,8 @@ class StormElemental extends Analyzer {
     return {
       actual: this.numCasts.others,
       isLessThan: {
-        minor: 1,
-        major: 0.95,
+        minor: 0.95,
+        major: 0.9,
       },
       style: 'percentage',
     };
@@ -198,7 +195,7 @@ class StormElemental extends Analyzer {
           return suggest(
             <span>Maximize your damage during Storm Elemental by only using the correct abilities.</span>)
             .icon(SPELLS.STORM_ELEMENTAL_TALENT.icon)
-            .actual(`${actual} other casts with Storm Elemental up`)
+            .actual(`${this.wrongCasts} other casts with Storm Elemental up`)
             .recommended(`Only cast specific while Storm Elemental is up.`);
         });
   }

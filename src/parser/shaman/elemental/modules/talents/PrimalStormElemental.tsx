@@ -4,8 +4,15 @@ import SPELLS from 'common/SPELLS';
 import SpellLink from 'common/SpellLink';
 import { formatNumber } from 'common/format';
 
-import Analyzer from 'parser/core/Analyzer';
-import { CastEvent, DamageEvent } from 'parser/core/Events';
+import Analyzer, {
+  SELECTED_PLAYER,
+  SELECTED_PLAYER_PET,
+} from 'parser/core/Analyzer';
+import Events, {
+  CastEvent,
+  DamageEvent,
+  SummonEvent,
+} from 'parser/core/Events';
 import Statistic from 'interface/statistics/Statistic';
 import BoringSpellValue
   from 'interface/statistics/components/BoringSpellValue';
@@ -29,18 +36,28 @@ class PrimalStormElemental extends Analyzer {
   damageGained = 0;
   maelstromGained = 0;
   badCasts=0;
+  SEup = false;
 
   constructor(options: any) {
     super(options);
     this.active = this.selectedCombatant.hasTalent(SPELLS.PRIMAL_ELEMENTALIST_TALENT.id)
       && this.selectedCombatant.hasTalent(SPELLS.STORM_ELEMENTAL_TALENT.id);
+    this.addEventListener(
+      Events.cast.by(SELECTED_PLAYER_PET),
+      this.onSECast,
+    );
+    this.addEventListener(
+      Events.summon.by(SELECTED_PLAYER).spell(SPELLS.STORM_ELEMENTAL_TALENT),
+      this.onSEsummon,
+    );
+    this.addEventListener(
+      Events.damage.by(SELECTED_PLAYER_PET).spell(damagingCasts),
+      this.onDamage,
+    );
   }
 
-  onPlayerSECast(event: CastEvent) {
-    if (event.ability.guid === SPELLS.STORM_ELEMENTAL_TALENT.id){
-      return;
-    }
-    this.pseCasts+=1;
+  onSEsummon(event: SummonEvent) {
+    this.SEup=true;
   }
 
   onSECast(event: CastEvent) {
@@ -60,10 +77,7 @@ class PrimalStormElemental extends Analyzer {
     }
   }
 
-  on_damage(event: DamageEvent) {
-    if (!damagingCasts.includes(event.ability.guid)) {
-      return;
-    }
+  onDamage(event: DamageEvent) {
     this.damageGained+=event.amount;
 
     if(event.ability.guid !== SPELLS.CALL_LIGHTNING.id) {
