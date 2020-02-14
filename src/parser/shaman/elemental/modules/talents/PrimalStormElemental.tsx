@@ -1,13 +1,16 @@
 import React from 'react';
 
 import SPELLS from 'common/SPELLS';
-import SpellIcon from 'common/SpellIcon';
 import SpellLink from 'common/SpellLink';
-import { formatNumber, formatPercentage } from 'common/format';
+import { formatNumber } from 'common/format';
 
 import Analyzer from 'parser/core/Analyzer';
+import { CastEvent, DamageEvent } from 'parser/core/Events';
+import Statistic from 'interface/statistics/Statistic';
+import BoringSpellValue
+  from 'interface/statistics/components/BoringSpellValue';
+import { Trans } from '@lingui/macro';
 
-import StatisticBox, { STATISTIC_ORDER } from 'interface/others/StatisticBox';
 
 const damagingCasts = [SPELLS.EYE_OF_THE_STORM.id, SPELLS.WIND_GUST.id, SPELLS.CALL_LIGHTNING.id];
 const CALL_LIGHTNING_BUFF_DURATION = 15000;
@@ -27,20 +30,20 @@ class PrimalStormElemental extends Analyzer {
   maelstromGained = 0;
   badCasts=0;
 
-  constructor(...args) {
-    super(...args);
+  constructor(options: any) {
+    super(options);
     this.active = this.selectedCombatant.hasTalent(SPELLS.PRIMAL_ELEMENTALIST_TALENT.id)
       && this.selectedCombatant.hasTalent(SPELLS.STORM_ELEMENTAL_TALENT.id);
   }
 
-  on_byPlayer_cast(event) {
+  onPlayerSECast(event: CastEvent) {
     if (event.ability.guid === SPELLS.STORM_ELEMENTAL_TALENT.id){
       return;
     }
     this.pseCasts+=1;
   }
 
-  on_cast(event) {
+  onSECast(event: CastEvent) {
     switch(event.ability.guid) {
       case SPELLS.EYE_OF_THE_STORM.id:
         this.usedCasts['Eye of the Storm']=true;
@@ -57,7 +60,7 @@ class PrimalStormElemental extends Analyzer {
     }
   }
 
-  on_damage(event) {
+  on_damage(event: DamageEvent) {
     if (!damagingCasts.includes(event.ability.guid)) {
       return;
     }
@@ -79,12 +82,13 @@ class PrimalStormElemental extends Analyzer {
     return this.damageGained / (this.owner.fightDuration / 1000);
   }
 
-  suggestions(when) {
+  suggestions(when: any) {
+    // @ts-ignore
     const unusedSpells = Object.keys(this.usedCasts).filter(key => !this.usedCasts[key]);
     const unusedSpellsString = unusedSpells.join(', ');
     const unusedSpellsCount = unusedSpells.length;
     when(unusedSpellsCount).isGreaterThan(0)
-      .addSuggestion((suggest, actual, recommended) => {
+      .addSuggestion((suggest: any, actual: any, recommended: any) => {
         return suggest(<span> Your Storm Elemental is not using all of it's spells. Check if Wind Gust and Call Lightning are set to autocast and you are using Eye Of The Storm.</span>)
           .icon(SPELLS.STORM_ELEMENTAL_TALENT.icon)
           .actual(`${formatNumber(unusedSpellsCount)} spells not used by your Storm Elemental (${unusedSpellsString})`)
@@ -93,7 +97,7 @@ class PrimalStormElemental extends Analyzer {
       });
 
     when(this.badCasts).isGreaterThan(0)
-      .addSuggestion((suggest, actual, recommended) => {
+      .addSuggestion((suggest: any, actual: any, recommended: any) => {
         return suggest(<span>You are not using <SpellLink id={SPELLS.CALL_LIGHTNING.id} /> on cooldown.</span>)
           .icon(SPELLS.STORM_ELEMENTAL_TALENT.icon)
           .actual(`${formatNumber(this.badCasts)} casts done by your Storm Elemental without the "Call Lightning"-Buff.}`)
@@ -104,13 +108,13 @@ class PrimalStormElemental extends Analyzer {
 
   statistic() {
     return (
-      <StatisticBox
-        icon={<SpellIcon id={SPELLS.STORM_ELEMENTAL_TALENT.id} />}
-        position={STATISTIC_ORDER.OPTIONAL()}
-        value={`~ ${formatPercentage(this.damagePercent)} %`}
-        label="Of total damage"
-        tooltip={`Buffed casts contributed ${formatNumber(this.damagePerSecond)} DPS (${formatNumber(this.damageGained)} total damage).`}
-      />
+      <Statistic>
+        <BoringSpellValue
+        spell={SPELLS.STORM_ELEMENTAL_TALENT}
+        value={<Trans>{formatNumber(this.damageGained)} Damage</Trans>}
+        label={<Trans>Damage done</Trans>}
+        />
+      </Statistic>
     );
   }
 }
